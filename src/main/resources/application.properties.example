@@ -1,0 +1,4 @@
+consumer.key=your_info
+consumer.secret=your_info
+twitter.access.token=your_info
+twitter.access.token.secret=your_info
