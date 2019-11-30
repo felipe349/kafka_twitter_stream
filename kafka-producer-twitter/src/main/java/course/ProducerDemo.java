@@ -1,4 +1,4 @@
-package com.github.felipe.kafka.course;
+package course;
 
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
