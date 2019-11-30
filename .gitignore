@@ -59,3 +59,4 @@ out
 gen
 /src/main/resources/application.properties
 /target/*
+/kafka-producer-twitter/src/main/resources/application.properties
