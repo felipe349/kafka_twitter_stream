@@ -12,17 +12,14 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.mapper.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +61,6 @@ public class ElasticSearchConsumer {
         String bootstrapServers = "127.0.0.1:9092";
         String groupId = "kafka-demo-elasticsearch";
 
-        // create consumer configs
         Properties properties = new Properties();
         properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         properties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -74,7 +70,6 @@ public class ElasticSearchConsumer {
         properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false"); // disable auto commit of offsets
         properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "100"); // disable auto commit of offsets
 
-        // create consumer
         KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(properties);
         consumer.subscribe(Arrays.asList(topic));
 
@@ -85,7 +80,6 @@ public class ElasticSearchConsumer {
     private static JsonParser jsonParser = new JsonParser();
 
     private static String extractIdFromTweet(String tweetJson){
-        // gson library
         return jsonParser.parse(tweetJson)
                 .getAsJsonObject()
                 .get("id_str")
@@ -96,7 +90,7 @@ public class ElasticSearchConsumer {
         Logger logger = LoggerFactory.getLogger(ElasticSearchConsumer.class.getName());
         RestHighLevelClient client = createClient();
 
-        KafkaConsumer<String, String> consumer = createConsumer("twitter_tweets");
+        KafkaConsumer<String, String> consumer = createConsumer("twitter_topic");
 
         while(true){
             ConsumerRecords<String, String> records =
@@ -109,23 +103,15 @@ public class ElasticSearchConsumer {
 
             for (ConsumerRecord<String, String> record : records){
 
-                // 2 strategies
-                // kafka generic ID
-                // String id = record.topic() + "_" + record.partition() + "_" + record.offset();
-
                 // twitter feed specific id
                 try {
                     String id = extractIdFromTweet(record.value());
 
-                    // where we insert data into ElasticSearch
-                    IndexRequest indexRequest = new IndexRequest(
-                            "twitter",
-                            "tweets",
-                            id // this is to make our consumer idempotent
-                    ).source(record.value(), XContentType.JSON);
+                    IndexRequest indexRequest = new IndexRequest("twitter", "tweets", id)
+                            .source(record.value(), XContentType.JSON);
 
-                    bulkRequest.add(indexRequest); // we add to our bulk request (takes no time)
-                } catch (NullPointerException e){
+                    bulkRequest.add(indexRequest);
+                } catch (Exception e){
                     logger.warn("skipping bad data: " + record.value());
                 }
 
@@ -143,10 +129,6 @@ public class ElasticSearchConsumer {
                 }
             }
         }
-
-        // close the client gracefully
-        // client.close();
-
     }
 
     private static void loadProperties() {
