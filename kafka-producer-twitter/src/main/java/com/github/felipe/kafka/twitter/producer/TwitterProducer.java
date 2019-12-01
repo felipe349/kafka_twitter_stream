@@ -1,4 +1,4 @@
-package course.twitter.producer;
+package com.github.felipe.kafka.twitter.producer;
 
 import com.google.common.collect.Lists;
 import com.twitter.hbc.ClientBuilder;

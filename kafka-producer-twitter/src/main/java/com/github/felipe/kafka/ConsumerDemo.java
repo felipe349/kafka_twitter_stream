@@ -1,4 +1,4 @@
-package course;
+package com.github.felipe.kafka;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

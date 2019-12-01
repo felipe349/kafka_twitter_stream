@@ -61,3 +61,5 @@ gen
 /target/*
 /kafka-producer-twitter/src/main/resources/application.properties
 /kafka-producer-twitter/target/*
+/kafka-consumer-elasticsearch/target/*
+/kafka-consumer-elasticsearch/src/main/resources/application.properties
